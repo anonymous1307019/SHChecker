@@ -23,7 +23,7 @@ class DTModeling:
         values_path = []
         values = dtc.tree_.value
     
-        def RevTraverseTree(tree, node, rules, pathValues):
+        def revTraverseTree(tree, node, rules, pathValues):
             try:
                 prevnode = tree[2].index(node)           
                 leftright = '<='
@@ -42,7 +42,7 @@ class DTModeling:
     
             # if we've not yet reached the top, go up the tree one more step
             if prevnode != 0:
-                RevTraverseTree(tree, prevnode, rules, pathValues)
+                revTraverseTree(tree, prevnode, rules, pathValues)
     
         # get the nodes which are leaves
         leaves = dtc.tree_.children_left == -1
@@ -60,7 +60,7 @@ class DTModeling:
             # get the decision rules
             rules = []
             pathValues = []
-            RevTraverseTree(thistree, nod, rules, pathValues)
+            revTraverseTree(thistree, nod, rules, pathValues)
     
             pathValues.insert(0, values[nod])      
             pathValues = list(reversed(pathValues))
@@ -85,7 +85,7 @@ class DTModeling:
         # train-test spilitting
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size = self.test_size, random_state = 0)
         
-    def dt_modeling( self ):  
+    def dtModeling( self ):  
         self. dt_preprocessing()
         self.model = DecisionTreeClassifier(random_state=0)
         self.model.fit(self.X_train, self.y_train)
@@ -99,7 +99,7 @@ class DTModeling:
 
 
 
-    def formal_modeling( self ):
+    def formalModeling( self ):
         self.dt_modeling()
         s = Solver()
         z3_input = [Real('input_'+str(i)) for i in range( self.num_inp_features )]

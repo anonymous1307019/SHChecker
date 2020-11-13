@@ -53,7 +53,7 @@ class LRModeling:
     self.lr_preprocessing()
     self.model = LogisticRegression(random_state=0).fit(self.X, self.y)
   
-  def formal_modeling(self):
+  def formalModeling(self):
     solver = Solver()
     z3_input = [ [ Real( 'z3_input_' + str(i) + '_' + str(j)) for j in range( self.nodes_in_layers[i])] 
                 for i in range(len(self.nodes_in_layers) ) ] 

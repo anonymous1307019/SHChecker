@@ -77,7 +77,7 @@ class NNModeling:
     self.model.fit( self.X_train, to_categorical(self.y_train), epochs=self.epochs, batch_size=self.batch_size, verbose=0)
     self.model.evaluate(self.X_test, to_categorical(self.y_test))
   
-  def formal_modeling(self):
+  def formalModeling(self):
     #self.nn_modeling()
 
     solver = Solver()
