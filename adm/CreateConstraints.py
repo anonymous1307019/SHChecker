@@ -21,7 +21,7 @@ class CreateConstraints:
     def __init__(self, datasetFile, eps, minPts):
         self.dataset = pd.read_csv(datasetFile)
             
-    def line_equation(x,y,x_1,y_1,x_2,y_2):
+    def lineEquation(x,y,x_1,y_1,x_2,y_2):
         return ( (x-x_1)/(x_1-x_2) == (y-y_1)/(y_1-y_2) ) 
    
     def const( p, q, initial_point, final_point ):

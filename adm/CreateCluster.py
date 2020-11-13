@@ -47,10 +47,6 @@ class CreateCluster:
                 for j in range(i+1, number_of_features):
                     # combination of pair of features
                     x = self.dataset.iloc[y==state, np.r_[i,j]].values
-                    # remove duplicate entries
-                    remove_duplicate = [] 
-                    remove_duplicate.append(k) for k in x.tolist() if k not in remove_duplicate
-                    x=remove_duplicate
                     
                     # directory for separating and orgranizing cluster points
                     dir=os.mkdir("Clusters/" + str(states[state])+"/"+str(i) + "_" +str(j)+'/')

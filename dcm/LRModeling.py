@@ -27,13 +27,13 @@ class LRModeling:
         result = result + val**i / math.factorial(i)   
       return result
   
-  def soft_max(self, index, values):
+  def softMax(self, index, values):
       sum =  0
       for value in values:
         sum =  sum + self.exponential(value)
       return self.exponential(values[index]) / sum
 
-  def lr_preprocessing(self):    
+  def lrPreprocessing(self):    
     # features
     self.X = self.dataset.iloc[:,:-1]
     # labels
@@ -49,8 +49,8 @@ class LRModeling:
     self.nodes_in_layers = [num_inp_nodes]
     self.nodes_in_layers.append(num_out_nodes)
 
-  def lr_modeling(self):
-    self.lr_preprocessing()
+  def lrModeling(self):
+    self.lrPreprocessing()
     self.model = LogisticRegression(random_state=0).fit(self.X, self.y)
   
   def formalModeling(self):
@@ -93,7 +93,7 @@ class LRModeling:
         arr = []
         for l in range(len(z3_input[i+1])):
           arr.append(z3_input[i+1][l]) 
-        solver.add(z3_output[i+1][j] == self.soft_max(j, arr))
+        solver.add(z3_output[i+1][j] == self.softMax(j, arr))
     solver.check()
     
     final_layer = len(z3_output) - 1

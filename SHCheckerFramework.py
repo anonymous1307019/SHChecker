@@ -17,6 +17,7 @@ if dcmType == "DT":
 elif dcmType == "LR":
     modeling = LRModeling(dataset, sample, test_size)
     modeling.lrModeling
+    
 elif dcmType == "NN":
     modeling = NNModeling(dataset, sample, test_size, epochs, batch_size, nodes_in_hidden_layers, activation_functions)
     modeling.nnModeling    
@@ -31,6 +32,7 @@ s=Solver()
 CreateCluster(datasetFile, clusteringMethod)
 # creating constraints for adm based on clusteringMethod
 # clusteringMethod could be "KMeans" or "DBSCAN"
+# CreateContraints returns state constraints 
 state_constraints = CreateConstraints(datasetFile, clusteringMethod)
 
 s.add(state_constraints[label])
@@ -41,11 +43,11 @@ for j in range(number_of_features):
     s.add(dx[j] / sample[i][j] <=  (threshold / 100))
     s.add(dx[j] / X[i][j] >=  -( threshold / 100))
 if (s.check() == sat):
-    print(i, X[i], s.model())
+    print(i, sample[i], s.model())
 if s.check()==sat:
     n_sat+=1
 else:
     n_unsat+=1
     
-print("SAT: ",n_sat)
-print("UNSAT ",n_unsat)   
+print("#SAT: ",n_sat)
+print("#UNSAT ",n_unsat)   

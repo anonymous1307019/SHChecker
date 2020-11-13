@@ -41,13 +41,13 @@ class NNModeling:
   def sigmoid(self, val):
       return 1 / (1 + self.exponential(-val) )
 
-  def soft_max(self, index, values):
+  def softMax(self, index, values):
       sum =  0
       for value in values:
         sum =  sum + self.exponential(value)
       return self.exponential(values[index]) / sum
 
-  def nn_preprocessing(self):    
+  def nnPreprocessing(self):    
     # features
     self.X = self.dataset.iloc[:,:-1]
     # labels
@@ -65,8 +65,8 @@ class NNModeling:
       self.nodes_in_layers.append(nodes)
     self.nodes_in_layers.append(num_out_nodes)
 
-  def nn_modeling(self):
-    self.nn_preprocessing()
+  def nnModeling(self):
+    self.nnPreprocessing()
     self.model = Sequential()
 
     self.model.add( Dense(self.nodes_in_layers[1], input_dim = self.nodes_in_layers[0], activation = self.activation_functions[0] ))
@@ -123,7 +123,7 @@ class NNModeling:
           arr = []
           for l in range(len(z3_input[i+1])):
             arr.append(z3_input[i+1][l]) 
-          solver.add(z3_output[i+1][j] == self.soft_max(j, arr))
+          solver.add(z3_output[i+1][j] == self.softMax(j, arr))
     print(solver)
     solver.check()
     print("Keras model output: ")

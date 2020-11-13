@@ -18,7 +18,7 @@ class DTModeling:
         self.test_size = test_size
         self.input_val = input_val
         
-    def get_rules(self, dtc, df):
+    def getRules(self, dtc, df):
         rules_list = []
         values_path = []
         values = dtc.tree_.value
@@ -72,7 +72,7 @@ class DTModeling:
     
         return (rules_list, values_path)
     
-    def dt_preprocessing( self ):    
+    def dtPreprocessing( self ):    
     # features
         self.X = self.dataset.iloc[:,:-1]
         # labels
@@ -86,7 +86,7 @@ class DTModeling:
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size = self.test_size, random_state = 0)
         
     def dtModeling( self ):  
-        self. dt_preprocessing()
+        self. dtPreprocessing()
         self.model = DecisionTreeClassifier(random_state=0)
         self.model.fit(self.X_train, self.y_train)
         y_pred = self.model.predict( self.X_test )
@@ -96,8 +96,6 @@ class DTModeling:
         # plotting confusion matrix
         conf_matrix = confusion_matrix(self.y_test, y_pred)
         sns.heatmap(conf_matrix, annot=True, fmt='d')
-
-
 
     def formalModeling( self ):
         self.dt_modeling()
@@ -124,12 +122,6 @@ class DTModeling:
         for i in range( self.X.shape[1] ):
             s.add( z3_input[i] == self.input_val[0][i])
         s.check()
-        #print(s.model())
+        
+        # returning label
         return toFloat(str(solver.model()[z3_output]))
-
-dataset = pd.read_csv("dataset.csv")
-input_val = np.array([[5.9,3,5.1,1.8]])
-test_size = 0.25
-# features
-dt_formal_modeling = DecisionTreeThreatModeling(dataset, input_val, test_size)
-dt_formal_modeling.formal_modeling()
