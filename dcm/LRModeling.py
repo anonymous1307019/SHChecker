@@ -4,10 +4,7 @@ import pandas as pd
 import numpy as np
 import math
 from z3 import *
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
-from tensorflow.keras.utils import to_categorical
+from sklearn.linear_model import LogisticRegression
 from fractions import Fraction
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -24,16 +21,11 @@ class LRModeling:
   def toFloat(self, str):
     return float(Fraction(str))
 
-  # rectified linear units activation function
-  def relu(self, val):
-      return val * (val > 0)
-
   def exponential(self, val):
       result = 0
       for i in range(100):
         result = result + val**i / math.factorial(i)   
       return result
-
   
   def soft_max(self, index, values):
       sum =  0
@@ -57,33 +49,58 @@ class LRModeling:
     self.nodes_in_layers = [num_inp_nodes]
     self.nodes_in_layers.append(num_out_nodes)
 
-
+  def lr_modeling(self):
+    self.lr_preprocessing()
+    self.model = LogisticRegression(random_state=0).fit(self.X, self.y)
   
   def formal_modeling(self):
-    self.lr_modeling()
-
     solver = Solver()
-    z3_input = [Real('z3_input_' + str(i)) for i in range(num_inp_nodes)]
-    z3_output = [Real('z3_output_' + str(i)) for i in range(num_out_nodes)]
-    
-    
+    z3_input = [ [ Real( 'z3_input_' + str(i) + '_' + str(j)) for j in range( self.nodes_in_layers[i])] 
+                for i in range(len(self.nodes_in_layers) ) ] 
+    z3_output = [ [ Real( 'z3_output_' + str(i) + '_' + str(j)) for j in range( self.nodes_in_layers[i])] 
+                for i in range(len(self.nodes_in_layers) ) ] 
+    z3_bias = [ [ Real( 'z3_bias_' + str(i) + '_' + str(j)) for j in range( self.nodes_in_layers[i+1])] 
+              for i in range(len(self.nodes_in_layers ) -1 ) ] 
+    z3_weight =  [ [ [Real( 'z3_weight_' + str(i) + '_' + str(j) + '_' + str(k) ) 
+              for k in range (self.nodes_in_layers[i+1]) ] for j in range( self.nodes_in_layers[i] )  ]  
+              for i in range (len(self.nodes_in_layers) - 1) ]
+
     ## input and output value constraint of layer 0
     for i in range(len(z3_input[0])): solver.add( z3_input[0][i] == input_val[0][i] )
+    for i in range(len(z3_output[0])): solver.add( z3_output[0][i] == z3_input[0][i] )
 
-    for i in range(len(z3_output)):
+
+    # assigning biases
+    for i in range( len(z3_bias) ):
+      for j in range( len(z3_bias[i]) ):
+        solver.add( z3_bias[i][j] == self.model.layers[i].get_weights()[1][j] )
+
+    # assigning weights
+    for i in range( len(z3_weight) ):
+      for j in range( len(z3_weight[i]) ):
+        for k in range( len(z3_weight[i][j]) ):
+          solver.add( z3_weight[i][j][k] == self.model.layers[i].get_weights()[0][j][k] )
+
+    for i  in range( len(self.nodes_in_layers) -1 ):
+      for j in range ( self.nodes_in_layers[i+1] ):
+        temp = 0
+        for k in range ( self.nodes_in_layers[i] ):
+          temp = temp + z3_weight[i][k][j] * z3_output[i][k]
+        temp = temp + z3_bias[i][j]
+        solver.add( z3_input[i+1][j] == temp)
+        
+        
         arr = []
-        for j in range(len(z3_input)):
-          arr.append(z3_input[j]) 
-        solver.add(z3_output[i] == self.soft_max(i, arr) )
-
+        for l in range(len(z3_input[i+1])):
+          arr.append(z3_input[i+1][l]) 
+        solver.add(z3_output[i+1][j] == self.soft_max(j, arr))
     solver.check()
-
+    
     final_layer = len(z3_output) - 1
     
     label = -1
     maxm = 0
 
-    final_layer = 1
     # finding argmax and assigning it as a label
     for i in range(len(z3_output[final_layer])):
       # determining current softmax value
@@ -94,3 +111,4 @@ class LRModeling:
       
     # returning the label
     return label
+    final_layer = len(z3_output) - 1

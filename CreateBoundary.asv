@@ -57,5 +57,6 @@ function output = createBoundary(datasetFile, states)
             end
         end
     end
+
     timeElapsed = toc;
     display(timeElapsed)

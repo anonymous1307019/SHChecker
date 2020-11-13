@@ -11,74 +11,71 @@ import os
 import csv
 from sklearn import preprocessing
 import time
+from sklearn.cluster import KMeans
 
+class CreateCluster:
+    def __init__(self, datasetFile, clusteringMethod):
+        self.dataset = pd.read_csv(datasetFile)
+        # clusteringMethod could be 'kMeans' or 'DBSCAN'
+        self.clusteringMethod = clusteringMethod
+        
+    def setParamsForDBSCAN(self, eps, minPts):
+        self.eps = eps
+        self.minPts = minPts
+        
+    def setParamsForKMeans(self, numClusters):
+        self.numClusters = numClusters
+        
+    def clusterCreation(self, states):
+        # for counting time
+        tic = time.perf_counter()
+        # all columns other than the last one are features columns
+        number_of_features = self.dataset.shape[1]-1
+        # features
+        x= self.dataset.iloc[:,:-1]
+        # label
+        y= self.dataset.iloc[:,-1]
+        # label encoding
+        y= preprocessing.LabelEncoder().fit_transform(y)
 
-tic = time.perf_counter()
-
-
-# loading dataset
-dataset = pd.read_csv("dataset.csv")
-dataset = dataset.drop(columns="Unnamed: 0")
-number_of_features=dataset.shape[1]-1
-
-
-X= dataset.iloc[:,:-1]
-y= dataset.iloc[:,-1]
-
-count_values = y.value_counts()
-
-## parameters
-eps=0.5
-minPts=5
-
-states = []
-for state in np.unique(y):
-    if y.value_counts()[state] >= 20:
-        states.append(state)
-
-
-y= preprocessing.LabelEncoder().fit_transform( y )
-
-os.mkdir("Clusters")
-for state in range(len(states)):
-    os.mkdir("Clusters/"+ str(states[state]))
-
-count = 0
-
-for state in range(len(states)):
-    for i in range(number_of_features-1):
-        for j in range(i+1,number_of_features):
-            X=dataset.iloc[y==state,np.r_[i,j]].values
-            remove_duplicate = [] 
-            [remove_duplicate.append(x) for x in X.tolist() if x not in remove_duplicate]
-            X=remove_duplicate
-            dir=os.mkdir("Clusters/"+ str(states[state])+"/"+str(i) + "_" +str(j)+'/')
-            db = DBSCAN(eps=eps, min_samples=minPts).fit(X)
-            labels = db.labels_
-            
-            # Number of clusters in labels, ignoring noise points
-            n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-            n_noise = list(labels).count(-1)
-            
-            with open('info.csv', mode='a', encoding='utf-8') as file:
-                writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                writer.writerow([str(states[state]),str(i), str(j), str(eps), str(minPts), str(n_clusters), str(n_noise)])
-            
-            for cluster in range(n_clusters):
-                points = []
-                for k in range(len(labels)):
-                    if labels[k]==cluster:
-                        points.append(X[k])
-                points=np.array(points)
-                
-                if (len(points>0)):
-                    f = open("Clusters/"+ str(states[state])+"/"+str(i) + "_" +str(j)+'/'+str(cluster)+".txt", "w")
-                    for data in points:
-                        count += 1
-                        f.write(str(data[0])+' '+str(data[1])+'\n')
-                    f.close()
-    print("State "+str(state)+" done")
-
-
-toc = time.perf_counter()
-print(f"Clustering took {toc - tic:0.4f} seconds")
+        os.mkdir("Clusters")
+        for state in range(len(states)):
+            os.mkdir("Clusters/"+ str(states[state]))
+        
+        for state in range(len(states)):
+            for i in range(number_of_features-1):
+                for j in range(i+1, number_of_features):
+                    # combination of pair of features
+                    x = self.dataset.iloc[y==state, np.r_[i,j]].values
+                    # remove duplicate entries
+                    remove_duplicate = [] 
+                    remove_duplicate.append(k) for k in x.tolist() if k not in remove_duplicate
+                    x=remove_duplicate
+                    
+                    # directory for separating and orgranizing cluster points
+                    dir=os.mkdir("Clusters/" + str(states[state])+"/"+str(i) + "_" +str(j)+'/')
+                    
+                    if self.clusteringMethod == 'DBSCAN':
+                        db = DBSCAN(eps = self.eps, min_samples = self.minPts).fit(x)
+                        
+                    elif self.clusteringMethod == 'KMeans':
+                        db = KMeans(n_clusters= self.numClusters, random_state=0).fit(x)
+                        
+                    # number of clusters in labels, ignoring noise points
+                    labels = db.labels_
+                    n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+                    n_noise = list(labels).count(-1)
+                                        
+                    for cluster in range(n_clusters):
+                        points = []
+                        for k in range(len(labels)):
+                            if labels[k] == cluster:
+                                points.append(X[k])
+                        points=np.array(points)
+                        
+                        if len(points > 0):
+                            f = open("Clusters/"+ str(states[state])+"/"+str(i) + "_" +str(j)+'/'+str(cluster)+".txt", "w")
+                            for data in points:
+                                f.write(str(data[0])+' '+str(data[1])+'\n')
+                            f.close()
+        toc = time.perf_counter()

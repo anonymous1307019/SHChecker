@@ -78,7 +78,7 @@ class NNModeling:
     self.model.evaluate(self.X_test, to_categorical(self.y_test))
   
   def formal_modeling(self):
-    self.nn_modeling()
+    #self.nn_modeling()
 
     solver = Solver()
     z3_input = [ [ Real( 'z3_input_' + str(i) + '_' + str(j)) for j in range( self.nodes_in_layers[i])] 
@@ -123,7 +123,7 @@ class NNModeling:
           arr = []
           for l in range(len(z3_input[i+1])):
             arr.append(z3_input[i+1][l]) 
-          solver.add(z3_output[i+1][j] == self.soft_max(j, arr) )
+          solver.add(z3_output[i+1][j] == self.soft_max(j, arr))
     print(solver)
     solver.check()
     print("Keras model output: ")
