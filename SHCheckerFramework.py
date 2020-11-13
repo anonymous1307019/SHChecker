@@ -28,8 +28,17 @@ label = modeling.formalModeling()
 # z3 solver uses SMT theory
 s=Solver()
 
-# creating cluster for adm
-CreateCluster(datasetFile, clusteringMethod)
+# creating cluster for 
+cluster = CreateCluster(datasetFile, clusteringMethod)
+# if clusteringMethod = 'KMeans'
+cluster.setParamsForKMeans(numClusters)
+# if clusteringMethod = 'DBSCAN'
+cluster.setParamsForDBSCAN(eps, misPts) 
+
+# cluster creation
+# states containts all possible disease labels
+cluster.clusterCreation(states)
+
 # creating constraints for adm based on clusteringMethod
 # clusteringMethod could be "KMeans" or "DBSCAN"
 # CreateContraints returns state constraints 
