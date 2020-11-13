@@ -95,6 +95,7 @@ class NNModeling:
     for i in range(len(z3_input[0])): solver.add( z3_input[0][i] == input_val[0][i] )
     for i in range(len(z3_output[0])): solver.add( z3_output[0][i] == z3_input[0][i] )
 
+
     # assigning biases
     for i in range( len(z3_bias) ):
       for j in range( len(z3_bias[i]) ):
@@ -120,8 +121,8 @@ class NNModeling:
 
         elif self.activation_functions[i]=='softmax':
           arr = []
-          for l in range( len(z3_input[i+1]) ):
-            arr.append( z3_input[i+1][l] ) 
+          for l in range(len(z3_input[i+1])):
+            arr.append(z3_input[i+1][l]) 
           solver.add(z3_output[i+1][j] == self.soft_max(j, arr) )
     print(solver)
     solver.check()
@@ -130,58 +131,18 @@ class NNModeling:
 
     print("Z3 model output: ")
     final_layer = len(z3_output) - 1
+    
+    label = -1
+    maxm = 0
+
+    # finding argmax and assigning it as a label
     for i in range(len(z3_output[final_layer])):
-      print(self.toFloat( str( solver.model()[z3_output[final_layer][i]] ) ))
-
-
-    def formal_threat_modeling(self, threshold):
-      self.nn_modeling()
-
-      solver = Solver()
-      z3_input = [ [ Real( 'z3_input_' + str(i) + '_' + str(j)) for j in range( self.nodes_in_layers[i])] 
-                  for i in range(len(self.nodes_in_layers) ) ] 
-      z3_output = [ [ Real( 'z3_output_' + str(i) + '_' + str(j)) for j in range( self.nodes_in_layers[i])] 
-                  for i in range(len(self.nodes_in_layers) ) ] 
-      z3_bias = [ [ Real( 'z3_bias_' + str(i) + '_' + str(j)) for j in range( self.nodes_in_layers[i+1])] 
-                for i in range(len(self.nodes_in_layers ) -1 ) ] 
-      z3_weight =  [ [ [Real( 'z3_weight_' + str(i) + '_' + str(j) + '_' + str(k) ) 
-                for k in range (self.nodes_in_layers[i+1]) ] for j in range( self.nodes_in_layers[i] )  ]  
-                for i in range (len(self.nodes_in_layers) - 1) ]
-
-      ## input and output value constraint of layer 0
-      for i in range(len(z3_input[0])): solver.add( z3_input[0][i] == input_val[0][i] )
-      for i in range(len(z3_output[0])): solver.add( z3_output[0][i] == z3_input[0][i] )
-
-      # assigning biases
-      for i in range( len(z3_bias) ):
-        for j in range( len(z3_bias[i]) ):
-          solver.add( z3_bias[i][j] == self.model.layers[i].get_weights()[1][j] )
-
-      # assigning weights
-      for i in range( len(z3_weight) ):
-        for j in range( len(z3_weight[i]) ):
-          for k in range( len(z3_weight[i][j]) ):
-            solver.add( z3_weight[i][j][k] == self.model.layers[i].get_weights()[0][j][k] )
-
-      # determining hidden and output layer input and output constraints
-      for i  in range( len(self.nodes_in_layers) -1 ):
-        for j in range ( self.nodes_in_layers[i+1] ):
-          temp = 0
-          for k in range ( self.nodes_in_layers[i] ):
-            temp = temp + z3_weight[i][k][j] * z3_output[i][k]
-          temp = temp + z3_bias[i][j]
-          solver.add( z3_input[i+1][j] == temp)
-          
-          if self.activation_functions[i]=='relu':
-            solver.add(z3_output[i+1][j] == self.relu(z3_input[i+1][j]) )
-
-          elif self.activation_functions[i]=='softmax':
-            arr = []
-            for l in range( len(z3_input[i+1]) ):
-              arr.append( z3_input[i+1][l] ) 
-            solver.add(z3_output[i+1][j] == self.soft_max(j, arr) )
+      # determining current softmax value
+      cVal = self.toFloat(str( solver.model()[z3_output[final_layer][i]]))
+      if cVal > maxm:
+          maxm = cVal
+          label = i
       
-      print("Z3 model output: ")
-      final_layer = len(z3_output) - 1
-      for i in range(len(z3_output[final_layer])):
-        print(self.toFloat(str(solver.model()[z3_output[final_layer][i]])))
+    # returning the label
+    return label
+      

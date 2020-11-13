@@ -123,10 +123,9 @@ class DTModeling:
         
         for i in range( self.X.shape[1] ):
             s.add( z3_input[i] == self.input_val[0][i])
-            
-        
         s.check()
-        print(s.model())
+        #print(s.model())
+        return toFloat(str(solver.model()[z3_output]))
 
 dataset = pd.read_csv("dataset.csv")
 input_val = np.array([[5.9,3,5.1,1.8]])
